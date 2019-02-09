@@ -161,13 +161,15 @@ def main():
 
                 important = [37, 38, 40, 41, 43, 44, 46, 47]
                 ds = dict()
+                blinkTog = False
                 for index in important:
                     (x, y) = shape[index]
                     ds[index] = y
                 if ((ds[41] - ds[37] < 6.5) and
                     (ds[40] - ds[38] < 6.5) and
                     (ds[47] - ds[43] < 6.5) and
-                    (ds[46] - ds[44] < 6.5)): color = (0, 255, 0)
+                    (ds[46] - ds[44] < 6.5)): blinkTog = True
+                if blinkTog: color = (0, 255, 0)
                 else: color = (0, 0, 255)
                 for i in important:
                     (x, y) = shape[i]
