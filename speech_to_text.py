@@ -162,8 +162,7 @@ def detect_sentence():
 
         # Now, put the transcription responses to use.
         detected_text = listen_print_loop(responses)
-
-   return detected_text
+        return detected_text
 
 if __name__ == '__main__':
     detect_sentence()
