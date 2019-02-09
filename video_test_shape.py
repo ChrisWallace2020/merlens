@@ -70,17 +70,18 @@ def main():
     if not cap.isOpened():
         print("Unable to connect to camera.")
         return
+
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(face_landmark_path)
 
     screenWidth, screenHeight = pyautogui.size()
 
     x_range = (-.35, .35)
-    y_range = (-.1, .3)
+    y_range = (-.05, .25)
 
-    num_points_to_average = 10
+    num_points_to_average = 100
 
-    exp_factor = -.05
+    exp_factor_speed = -.5
 
     x_list = []
     y_list = []
@@ -88,6 +89,7 @@ def main():
 
     while cap.isOpened():
         ret, frame = cap.read()
+        print(frame.shape)
         if ret:
             frame = cv2.flip(frame, 1)
             face_rects = detector(frame, 0)
@@ -104,8 +106,6 @@ def main():
                 x = max(min(x, 1), 0)
                 y = max(min(y, 1), 0)
 
-                print(x,y)
-
                 x_list.append(x)
                 y_list.append(y)
 
@@ -119,12 +119,21 @@ def main():
                 x_speed_arr = np.diff(x_arr)
                 y_speed_arr = np.diff(y_arr)
                 speed_arr = np.sqrt(np.square(x_speed_arr) + np.square(y_speed_arr))
+                print(speed_arr.shape)
 
-                weighting = np.exp(exp_factor * np.arange(x_arr.shape[0]))
-                weighting = weighting / np.sum(weighting)
+                weighting_speed = np.exp(exp_factor_speed * np.arange(speed_arr.shape[0]))
+                weighting_speed = weighting_speed / np.sum(weighting_speed)
 
-                x_smoothed = np.dot(x_arr, weighting)
-                y_smoothed = np.dot(y_arr, weighting)
+                speed_smoothed = np.dot(speed_arr, weighting_speed)
+                print(speed_smoothed)
+
+                exp_factor_xy = speed_smoothed / 2
+
+                weighting_xy = np.exp(exp_factor_xy * np.arange(x_arr.shape[0]))
+                weighting_xy = weighting_xy / np.sum(weighting_xy) 
+
+                x_smoothed = np.dot(x_arr, weighting_xy)
+                y_smoothed = np.dot(y_arr, weighting_xy)
 
 
                 pyautogui.moveTo(x_smoothed * screenWidth, 
