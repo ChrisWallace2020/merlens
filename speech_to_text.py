@@ -2,6 +2,7 @@
 
 import re
 import sys
+from constants import *
 
 from google.cloud import speech
 from google.cloud.speech import enums
@@ -137,7 +138,8 @@ def listen_print_loop(responses):
             return final_transcript
 
 
-def main():
+def detect_sentence():
+    # Detect 1 blurb of speech - returns after pause
     # See http://g.co/cloud/speech/docs/languages
     # for a list of supported languages.
     language_code = 'en-US'  # a BCP-47 language tag
@@ -161,10 +163,5 @@ def main():
         # Now, put the transcription responses to use.
         detected_text = listen_print_loop(responses)
 
-    with open("transcript.txt", 'w') as transcript_file:
-        transcript_file.write(detected_text)
-        transcript_file.close()
+   return detected_text
 
-
-if __name__ == '__main__':
-    main()
