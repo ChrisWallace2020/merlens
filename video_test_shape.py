@@ -76,16 +76,22 @@ def main():
 
     screenWidth, screenHeight = pyautogui.size()
 
-    x_range = (-.35, .35)
-    y_range = (-.05, .25)
+    x_range = (-.2, .2)
+    y_range = (-.05, .05)
 
     num_points_to_average = 100
 
-    exp_factor_speed = -.5
+    exp_factor = -.3
+
+    radius_do_nothing = .3
+
+    speed_scale_factor = .05
 
     x_list = []
     y_list = []
-    cur_index = 0
+
+    mouse_x = .5
+    mouse_y = .5
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -101,10 +107,14 @@ def main():
                 reprojectdst, euler_angle, pose_mat = get_head_pose(shape)
                 forward_face_vec = pose_mat[0:3, 2]
 
+                # print(forward_face_vec)
+
                 x = (x_range[1] - forward_face_vec[0]) / (x_range[1] - x_range[0])
                 y = (y_range[1] - forward_face_vec[1]) / (y_range[1] - y_range[0])
                 x = max(min(x, 1), 0)
                 y = max(min(y, 1), 0)
+
+                # print(x,y)
 
                 x_list.append(x)
                 y_list.append(y)
@@ -116,28 +126,26 @@ def main():
                 x_arr = np.flip(np.array(x_list))
                 y_arr = np.flip(np.array(y_list))
 
-                x_speed_arr = np.diff(x_arr)
-                y_speed_arr = np.diff(y_arr)
-                speed_arr = np.sqrt(np.square(x_speed_arr) + np.square(y_speed_arr))
-                print(speed_arr.shape)
-
-                weighting_speed = np.exp(exp_factor_speed * np.arange(speed_arr.shape[0]))
-                weighting_speed = weighting_speed / np.sum(weighting_speed)
-
-                speed_smoothed = np.dot(speed_arr, weighting_speed)
-                print(speed_smoothed)
-
-                exp_factor_xy = speed_smoothed / 2
-
-                weighting_xy = np.exp(exp_factor_xy * np.arange(x_arr.shape[0]))
-                weighting_xy = weighting_xy / np.sum(weighting_xy) 
+                weighting = np.exp(exp_factor * np.arange(x_arr.shape[0]))
+                weighting = weighting / np.sum(weighting)
 
                 x_smoothed = np.dot(x_arr, weighting_xy)
                 y_smoothed = np.dot(y_arr, weighting_xy)
 
+                # print("facing", x_smoothed, y_smoothed)
 
-                pyautogui.moveTo(x_smoothed * screenWidth, 
-                                 y_smoothed * screenHeight)
+                radius = np.sqrt((x_smoothed - .5) ** 2 + (y_smoothed - .5) ** 2)
+                if radius > radius_do_nothing:
+                    scale = speed_scale_factor * (radius - radius_do_nothing) / radius
+                    x_diff = (x_smoothed - .5) * scale
+                    y_diff = (y_smoothed - .5) * scale
+                    mouse_x += x_diff
+                    mouse_y += y_diff
+
+                # print("mouse", mouse_x, mouse_y)
+
+                pyautogui.moveTo(mouse_x * screenWidth, 
+                                 mouse_y * screenHeight)
 
                 for (x, y) in shape:
                     cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
@@ -145,7 +153,7 @@ def main():
                 for start, end in line_pairs:
                     cv2.line(frame, reprojectdst[start], reprojectdst[end], (0, 0, 255))
 
-            cv2.imshow("demo", frame)
+            # cv2.imshow("demo", frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
