@@ -6,10 +6,9 @@ import pyautogui
 
 face_landmark_path = './shape_predictor_68_face_landmarks.dat'
 
-K = [6.5308391993466671e+002, 0.0, 3.1950000000000000e+002,
-     0.0, 6.5308391993466671e+002, 2.3950000000000000e+002,
-     0.0, 0.0, 1.0]
-D = [7.0834633684407095e-002, 6.9140193737175351e-002, 0.0, 0.0, -1.3073460323689292e+000]
+with np.load('HD920.npz') as X:
+    K, D = [X[i] for i in ('mtx','dist')] 
+
 
 cam_matrix = np.array(K).reshape(3, 3).astype(np.float32)
 dist_coeffs = np.array(D).reshape(5, 1).astype(np.float32)
@@ -70,23 +69,31 @@ def main():
     if not cap.isOpened():
         print("Unable to connect to camera.")
         return
+
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(face_landmark_path)
 
     screenWidth, screenHeight = pyautogui.size()
 
-    x_range = (-.35, .35)
-    y_range = (-.1, .3)
+    x_range = (-.2, .3)
+    y_range = (-.1, .1)
 
-    num_points_to_average = 10
+    num_points_to_average = 100
 
-    exp_factor = -.05
+    exp_factor = -1
+
+    delta_do_nothing = .3
+
+    speed_scale_factor = .05
 
     x_list = []
     y_list = []
-    cur_index = 0
+
+    mouse_x = .5
+    mouse_y = .5
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -100,6 +107,8 @@ def main():
 
                 reprojectdst, euler_angle, pose_mat = get_head_pose(shape)
                 forward_face_vec = pose_mat[0:3, 2]
+
+                # print(forward_face_vec)
 
                 x = (x_range[1] - forward_face_vec[0]) / (x_range[1] - x_range[0])
                 y = (y_range[1] - forward_face_vec[1]) / (y_range[1] - y_range[0])
@@ -118,19 +127,37 @@ def main():
                 x_arr = np.flip(np.array(x_list))
                 y_arr = np.flip(np.array(y_list))
 
-                x_speed_arr = np.diff(x_arr)
-                y_speed_arr = np.diff(y_arr)
-                speed_arr = np.sqrt(np.square(x_speed_arr) + np.square(y_speed_arr))
-
                 weighting = np.exp(exp_factor * np.arange(x_arr.shape[0]))
                 weighting = weighting / np.sum(weighting)
 
                 x_smoothed = np.dot(x_arr, weighting)
                 y_smoothed = np.dot(y_arr, weighting)
 
+                # print("facing", x_smoothed, y_smoothed)
 
-                pyautogui.moveTo(x_smoothed * screenWidth, 
-                                 y_smoothed * screenHeight)
+                # radius = np.sqrt((x_smoothed - .5) ** 2 + (y_smoothed - .5) ** 2)
+                # if radius > radius_do_nothing:
+                #     scale = speed_scale_factor * (radius - radius_do_nothing) / radius
+                #     x_diff = (x_smoothed - .5) * scale
+                #     y_diff = (y_smoothed - .5) * scale
+                #     mouse_x += x_diff
+                #     mouse_y += y_diff
+
+                if abs(x_smoothed - .5) > delta_do_nothing:
+                    # print("moving x")
+                    scale = speed_scale_factor * (abs(x_smoothed - .5) - delta_do_nothing) / abs(x_smoothed - .5)
+                    x_diff = (x_smoothed - .5) * scale
+                    mouse_x += x_diff
+                if abs(y_smoothed - .5) > delta_do_nothing:
+                    # print("moving y")
+                    scale = speed_scale_factor * (abs(y_smoothed - .5) - delta_do_nothing) / abs(y_smoothed - .5)
+                    y_diff = (y_smoothed - .5) * scale
+                    mouse_y += y_diff
+
+                # print("mouse", mouse_x, mouse_y)
+
+                pyautogui.moveTo(mouse_x * screenWidth, 
+                                 mouse_y * screenHeight)
 
                 important = [37, 38, 40, 41, 43, 44, 46, 47]
                 ds = dict()
@@ -153,7 +180,7 @@ def main():
                 for start, end in line_pairs:
                     cv2.line(frame, reprojectdst[start], reprojectdst[end], color)
 
-            cv2.imshow("demo", frame)
+            # cv2.imshow("demo", frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
