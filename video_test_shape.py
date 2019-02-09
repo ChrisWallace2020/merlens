@@ -85,9 +85,11 @@ def main():
 
     exp_factor = -1
 
-    delta_do_nothing = .3
+    delta_slow = .2
+    delta_fast = .49
 
-    speed_scale_factor = 1.5
+    speed_scale_factor_slow = 1.5
+    speed_scale_factor_fast = 4
 
     x_list = []
     y_list = []
@@ -108,14 +110,10 @@ def main():
                 reprojectdst, euler_angle, pose_mat = get_head_pose(shape)
                 forward_face_vec = pose_mat[0:3, 2]
 
-                print(forward_face_vec)
-
                 x = (x_range[1] - forward_face_vec[0]) / (x_range[1] - x_range[0])
                 y = (y_range[1] - forward_face_vec[1]) / (y_range[1] - y_range[0])
                 x = max(min(x, 1), 0)
                 y = max(min(y, 1), 0)
-
-                print(x,y)
 
                 x_list.append(x)
                 y_list.append(y)
@@ -133,12 +131,24 @@ def main():
                 x_smoothed = np.dot(x_arr, weighting)
                 y_smoothed = np.dot(y_arr, weighting)
 
-                if abs(x_smoothed - .5) > delta_do_nothing:
-                    scale = speed_scale_factor * (abs(x_smoothed - .5) - delta_do_nothing) / abs(x_smoothed - .5)
+                if abs(x_smoothed - .5) > delta_slow:
+                    if abs(x_smoothed - .5) > delta_fast:
+                        scale = speed_scale_factor_fast
+                        print("fast")
+                    else:
+                        print("slow")
+                        scale = speed_scale_factor_slow
+                    scale = scale * (abs(x_smoothed - .5) - delta_slow) / abs(x_smoothed - .5)
                     x_diff = ((x_smoothed - .5) ** 5) * scale
                     mouse_x += x_diff
-                if abs(y_smoothed - .5) > delta_do_nothing:
-                    scale = speed_scale_factor * (abs(y_smoothed - .5) - delta_do_nothing) / abs(y_smoothed - .5)
+                if abs(y_smoothed - .5) > delta_slow:
+                    if abs(y_smoothed - .5) > delta_fast:
+                        print("fast")
+                        scale = speed_scale_factor_fast
+                    else:
+                        print("slow")
+                        scale = speed_scale_factor_slow
+                    scale = scale * (abs(y_smoothed - .5) - delta_slow) / abs(y_smoothed - .5)
                     y_diff = ((y_smoothed - .5) ** 5) * scale
                     mouse_y += y_diff
 
