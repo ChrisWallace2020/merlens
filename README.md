@@ -1,6 +1,13 @@
 # merlens
 Merlens enables people to navigate browsers using computer vision for facial recognition
 
+## Running Merlens
+
+Controls:
+- To move the mouse, rotate your face towards the direction you want the mouse to move.
+- Blink between 1 and 3 seconds to click.
+- Blink more than 3 seconds to start typing via speech-to-text processing. Say "Enter" when you're done talking.
+
 ## Scrolling via Mouse Position
 To set up scrolling via mouse position, do the following:
 
