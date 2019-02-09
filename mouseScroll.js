@@ -44,9 +44,21 @@ function mouseScroll(scrollUpZone = 100,
   }
 
   //Trigger the scroll
-  setInterval(function () {
+  var scrollingOn = setInterval(function () {
     window.scrollBy(0, speed * direction);
   }, refreshInterval);
+
+  document.addEventListener("keydown", function(event) {
+    if (event.which == 192) {
+      if (scrollingOn) {
+        clearTimeout(scrollingOn);
+      } else {
+        scrollingOn = setInterval(function () {
+          window.scrollBy(0, speed * direction);
+        }, refreshInterval);
+      }
+    }
+  })
 
   //Stop scrolling when the mouse leaves the window
   document.addEventListener("mouseleave", function () {
