@@ -6,10 +6,9 @@ import pyautogui
 
 face_landmark_path = './shape_predictor_68_face_landmarks.dat'
 
-K = [6.5308391993466671e+002, 0.0, 3.1950000000000000e+002,
-     0.0, 6.5308391993466671e+002, 2.3950000000000000e+002,
-     0.0, 0.0, 1.0]
-D = [7.0834633684407095e-002, 6.9140193737175351e-002, 0.0, 0.0, -1.3073460323689292e+000]
+with np.load('HD920.npz') as X:
+    K, D = [X[i] for i in ('mtx','dist')] 
+
 
 cam_matrix = np.array(K).reshape(3, 3).astype(np.float32)
 dist_coeffs = np.array(D).reshape(5, 1).astype(np.float32)
@@ -76,14 +75,14 @@ def main():
 
     screenWidth, screenHeight = pyautogui.size()
 
-    x_range = (-.2, .2)
-    y_range = (-.05, .05)
+    x_range = (-.2, .3)
+    y_range = (-.1, .1)
 
     num_points_to_average = 100
 
-    exp_factor = -.3
+    exp_factor = -1
 
-    radius_do_nothing = .3
+    delta_do_nothing = .3
 
     speed_scale_factor = .05
 
@@ -95,7 +94,6 @@ def main():
 
     while cap.isOpened():
         ret, frame = cap.read()
-        print(frame.shape)
         if ret:
             frame = cv2.flip(frame, 1)
             face_rects = detector(frame, 0)
@@ -114,7 +112,7 @@ def main():
                 x = max(min(x, 1), 0)
                 y = max(min(y, 1), 0)
 
-                # print(x,y)
+                print(x,y)
 
                 x_list.append(x)
                 y_list.append(y)
@@ -134,12 +132,23 @@ def main():
 
                 # print("facing", x_smoothed, y_smoothed)
 
-                radius = np.sqrt((x_smoothed - .5) ** 2 + (y_smoothed - .5) ** 2)
-                if radius > radius_do_nothing:
-                    scale = speed_scale_factor * (radius - radius_do_nothing) / radius
+                # radius = np.sqrt((x_smoothed - .5) ** 2 + (y_smoothed - .5) ** 2)
+                # if radius > radius_do_nothing:
+                #     scale = speed_scale_factor * (radius - radius_do_nothing) / radius
+                #     x_diff = (x_smoothed - .5) * scale
+                #     y_diff = (y_smoothed - .5) * scale
+                #     mouse_x += x_diff
+                #     mouse_y += y_diff
+
+                if abs(x_smoothed - .5) > delta_do_nothing:
+                    # print("moving x")
+                    scale = speed_scale_factor * (abs(x_smoothed - .5) - delta_do_nothing) / abs(x_smoothed - .5)
                     x_diff = (x_smoothed - .5) * scale
-                    y_diff = (y_smoothed - .5) * scale
                     mouse_x += x_diff
+                if abs(y_smoothed - .5) > delta_do_nothing:
+                    # print("moving y")
+                    scale = speed_scale_factor * (abs(y_smoothed - .5) - delta_do_nothing) / abs(y_smoothed - .5)
+                    y_diff = (y_smoothed - .5) * scale
                     mouse_y += y_diff
 
                 # print("mouse", mouse_x, mouse_y)
