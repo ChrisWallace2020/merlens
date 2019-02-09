@@ -70,6 +70,8 @@ def main():
     if not cap.isOpened():
         print("Unable to connect to camera.")
         return
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(face_landmark_path)
 
@@ -130,11 +132,26 @@ def main():
                 pyautogui.moveTo(x_smoothed * screenWidth, 
                                  y_smoothed * screenHeight)
 
-                for (x, y) in shape:
-                    cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
+                important = [37, 38, 40, 41, 43, 44, 46, 47]
+                ds = dict()
+                for index in important:
+                    (x, y) = shape[index]
+                    ds[index] = y
+                if ((ds[41] - ds[37] < 6.5) and
+                    (ds[40] - ds[38] < 6.5) and
+                    (ds[47] - ds[43] < 6.5) and
+                    (ds[46] - ds[44] < 6.5)): color = (0, 255, 0)
+                else: color = (0, 0, 255)
+                for i in important:
+                    (x, y) = shape[i]
+                    cv2.circle(frame, (x, y), 1, color, -1)
+                for i in range(len(shape)):
+                    if i not in important:
+                        (x, y) = shape[i]
+                        cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
 
                 for start, end in line_pairs:
-                    cv2.line(frame, reprojectdst[start], reprojectdst[end], (0, 0, 255))
+                    cv2.line(frame, reprojectdst[start], reprojectdst[end], color)
 
             cv2.imshow("demo", frame)
 
