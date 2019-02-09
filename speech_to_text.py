@@ -2,7 +2,6 @@
 
 import re
 import sys
-from constants import *
 
 from google.cloud import speech
 from google.cloud.speech import enums
