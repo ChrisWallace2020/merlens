@@ -1,4 +1,11 @@
-//Initialize mouseScroll.
+// ==UserScript==
+// @name MouseScroll
+// @namespace wiyu98
+// @match *://*/*
+// @grant none
+// ==/UserScript==
+
+//Initialize mouseScroll. Enter parameters here.
 mouseScroll();
 
 /**
