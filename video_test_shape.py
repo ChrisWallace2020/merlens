@@ -129,8 +129,8 @@ def main():
                 weighting = np.exp(exp_factor * np.arange(x_arr.shape[0]))
                 weighting = weighting / np.sum(weighting)
 
-                x_smoothed = np.dot(x_arr, weighting_xy)
-                y_smoothed = np.dot(y_arr, weighting_xy)
+                x_smoothed = np.dot(x_arr, weighting)
+                y_smoothed = np.dot(y_arr, weighting)
 
                 # print("facing", x_smoothed, y_smoothed)
 
