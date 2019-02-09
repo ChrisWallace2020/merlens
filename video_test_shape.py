@@ -76,15 +76,15 @@ def main():
     screenWidth, screenHeight = pyautogui.size()
 
     x_range = (-.2, .3)
-    y_range = (-.1, .1)
+    y_range = (-.1, .05)
 
-    num_points_to_average = 100
+    num_points_to_average = 5
 
     exp_factor = -1
 
     delta_do_nothing = .3
 
-    speed_scale_factor = .05
+    speed_scale_factor = 1.5
 
     x_list = []
     y_list = []
@@ -105,7 +105,7 @@ def main():
                 reprojectdst, euler_angle, pose_mat = get_head_pose(shape)
                 forward_face_vec = pose_mat[0:3, 2]
 
-                # print(forward_face_vec)
+                print(forward_face_vec)
 
                 x = (x_range[1] - forward_face_vec[0]) / (x_range[1] - x_range[0])
                 y = (y_range[1] - forward_face_vec[1]) / (y_range[1] - y_range[0])
@@ -130,28 +130,14 @@ def main():
                 x_smoothed = np.dot(x_arr, weighting)
                 y_smoothed = np.dot(y_arr, weighting)
 
-                # print("facing", x_smoothed, y_smoothed)
-
-                # radius = np.sqrt((x_smoothed - .5) ** 2 + (y_smoothed - .5) ** 2)
-                # if radius > radius_do_nothing:
-                #     scale = speed_scale_factor * (radius - radius_do_nothing) / radius
-                #     x_diff = (x_smoothed - .5) * scale
-                #     y_diff = (y_smoothed - .5) * scale
-                #     mouse_x += x_diff
-                #     mouse_y += y_diff
-
                 if abs(x_smoothed - .5) > delta_do_nothing:
-                    # print("moving x")
                     scale = speed_scale_factor * (abs(x_smoothed - .5) - delta_do_nothing) / abs(x_smoothed - .5)
-                    x_diff = (x_smoothed - .5) * scale
+                    x_diff = ((x_smoothed - .5) ** 5) * scale
                     mouse_x += x_diff
                 if abs(y_smoothed - .5) > delta_do_nothing:
-                    # print("moving y")
                     scale = speed_scale_factor * (abs(y_smoothed - .5) - delta_do_nothing) / abs(y_smoothed - .5)
-                    y_diff = (y_smoothed - .5) * scale
+                    y_diff = ((y_smoothed - .5) ** 5) * scale
                     mouse_y += y_diff
-
-                # print("mouse", mouse_x, mouse_y)
 
                 pyautogui.moveTo(mouse_x * screenWidth, 
                                  mouse_y * screenHeight)
