@@ -1,4 +1,11 @@
-//Initialize mouseScroll.
+// ==UserScript==
+// @name MouseScroll
+// @namespace wiyu98
+// @match *://*/*
+// @grant none
+// ==/UserScript==
+
+//Initialize mouseScroll. Enter parameters here.
 mouseScroll();
 
 /**
@@ -43,10 +50,20 @@ function mouseScroll(scrollUpZone = 100,
     }
   }
 
-  //Trigger the scroll
-  setInterval(function () {
-    window.scrollBy(0, speed * direction);
-  }, refreshInterval);
+  //Pressing ` will toggle the scroller on/off
+  var scroller = null; //Scroller is off at the start
+  document.addEventListener("keydown", function(event) {
+    if (event.which == 192) {
+      if (scroller) {
+        clearTimeout(scroller);
+        scroller = null;
+      } else {
+        scroller = setInterval(function () {
+          window.scrollBy(0, speed * direction);
+        }, refreshInterval);
+      }
+    }
+  })
 
   //Stop scrolling when the mouse leaves the window
   document.addEventListener("mouseleave", function () {

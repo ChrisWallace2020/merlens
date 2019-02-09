@@ -9,7 +9,6 @@ face_landmark_path = './shape_predictor_68_face_landmarks.dat'
 with np.load('HD920.npz') as X:
     K, D = [X[i] for i in ('mtx','dist')] 
 
-
 cam_matrix = np.array(K).reshape(3, 3).astype(np.float32)
 dist_coeffs = np.array(D).reshape(5, 1).astype(np.float32)
 
@@ -97,6 +96,8 @@ def main():
     mouse_x = .5
     mouse_y = .5
 
+    blinkTog = False
+    
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
@@ -163,8 +164,11 @@ def main():
                 if ((ds[41] - ds[37] < 6.5) and
                     (ds[40] - ds[38] < 6.5) and
                     (ds[47] - ds[43] < 6.5) and
-                    (ds[46] - ds[44] < 6.5)): color = (0, 255, 0)
-                else: color = (0, 0, 255)
+                    (ds[46] - ds[44] < 6.5)): blinkTog = not blinkTog
+                if blinkTog: 
+                    color = (0, 255, 0)
+                else: 
+                    color = (0, 0, 255)
                 for i in important:
                     (x, y) = shape[i]
                     cv2.circle(frame, (x, y), 1, color, -1)
@@ -176,11 +180,10 @@ def main():
                 for start, end in line_pairs:
                     cv2.line(frame, reprojectdst[start], reprojectdst[end], color)
 
-            # cv2.imshow("demo", frame)
+            cv2.imshow("demo", frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
 
 if __name__ == '__main__':
     main()
