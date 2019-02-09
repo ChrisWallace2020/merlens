@@ -50,17 +50,15 @@ function mouseScroll(scrollUpZone = 100,
     }
   }
 
-  //Trigger the scroll
-  var scrollingOn = setInterval(function () {
-    window.scrollBy(0, speed * direction);
-  }, refreshInterval);
-
+  //Pressing ` will toggle the scroller on/off
+  var scroller = null; //Scroller is off at the start
   document.addEventListener("keydown", function(event) {
     if (event.which == 192) {
-      if (scrollingOn) {
+      if (scroller) {
         clearTimeout(scroller);
+        scroller = null;
       } else {
-        scrollingOn = setInterval(function () {
+        scroller = setInterval(function () {
           window.scrollBy(0, speed * direction);
         }, refreshInterval);
       }
