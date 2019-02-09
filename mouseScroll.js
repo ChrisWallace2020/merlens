@@ -5,10 +5,12 @@
 // @grant none
 // ==/UserScript==
 
-//Initialize mouseScroll. Enter parameters here.
-mouseScroll();
+//Initialize mouseScroll. Enter parameters here as a JSON object.
+mouseScroll({});
 
 /**
+ * Enables you to scroll by having your mouse in the right position.
+ * Pass in a JSON object with these optional parameters:
  * 
  * @param scrollUpZone
  * number of pixels below the top of the window where scrolling up starts.
@@ -27,11 +29,23 @@ mouseScroll();
  * a mulitplier that determines how much the scroll moves per refresh.
  * the higher the number, the faster the scroll.
  * Default: 0.10
+ * 
+ * @param initOn
+ * determines whether the scroller is on or not when a new page is opened
+ * Default: false
+ * 
+ * @param toggleKey
+ * the key code of the key that toggles the scroller
+ * Default: 192 (`)
  */
-function mouseScroll(scrollUpZone = 100,
-                    scrollDownZone = 100,
-                    refreshInterval = 20,
-                    scrollDist = 0.10) {
+function mouseScroll(params) {
+
+  scrollUpZone = params.scrollUpZone || 100;
+  scrollDownZone = params.scrollDownZone || 100;
+  refreshInterval = params.refreshInterval || 20;
+  scrollDist = params.scrollDist || 0.10;
+  initOn = params.initOn || false;
+  toggleKey = params.toggleKey || 192;
 
   var lowerThreshold = window.innerHeight - scrollDownZone;
   var speed = 0;
@@ -50,10 +64,17 @@ function mouseScroll(scrollUpZone = 100,
     }
   }
 
-  //Pressing ` will toggle the scroller on/off
-  var scroller = null; //Scroller is off at the start
+  //Initialize scroller
+  var scroller = null;
+  if (initOn == true) {
+    scroller = setInterval(function () {
+      window.scrollBy(0, speed * direction);
+    }, refreshInterval);
+  }
+
+  //Toggle the scroller on/off
   document.addEventListener("keydown", function(event) {
-    if (event.which == 192) {
+    if (event.which == toggleKey) {
       if (scroller) {
         clearTimeout(scroller);
         scroller = null;
