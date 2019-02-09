@@ -165,3 +165,5 @@ def detect_sentence():
 
    return detected_text
 
+if __name__ == '__main__':
+    detect_sentence()
