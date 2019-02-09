@@ -51,7 +51,7 @@ function mouseScroll(scrollUpZone = 100,
   document.addEventListener("keydown", function(event) {
     if (event.which == 192) {
       if (scrollingOn) {
-        clearTimeout(scrollingOn);
+        clearTimeout(scroller);
       } else {
         scrollingOn = setInterval(function () {
           window.scrollBy(0, speed * direction);
