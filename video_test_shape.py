@@ -3,6 +3,9 @@ import dlib
 import numpy as np
 from imutils import face_utils
 import pyautogui
+import keyboard
+import time
+import speech_to_text
 
 face_landmark_path = './shape_predictor_68_face_landmarks.dat'
 
@@ -97,12 +100,20 @@ def main():
     mouse_y = .5
 
     blinkTog = False
+    eyeClose = False
+
+    eye_close_timer = None
     
     while cap.isOpened():
         ret, frame = cap.read()
         if ret:
             frame = cv2.flip(frame, 1)
             face_rects = detector(frame, 0)
+
+            if keyboard.is_pressed('b'):
+                eyeClose = True
+            else:
+                eyeClose = False
 
             if len(face_rects) > 0:
                 shape = predictor(frame, face_rects[0])
@@ -135,19 +146,15 @@ def main():
                 if abs(x_smoothed - .5) > delta_slow:
                     if abs(x_smoothed - .5) > delta_fast:
                         scale = speed_scale_factor_fast
-                        print("fast")
                     else:
-                        print("slow")
                         scale = speed_scale_factor_slow
                     scale = scale * (abs(x_smoothed - .5) - delta_slow) / abs(x_smoothed - .5)
                     x_diff = ((x_smoothed - .5) ** 5) * scale
                     mouse_x += x_diff
                 if abs(y_smoothed - .5) > delta_slow:
                     if abs(y_smoothed - .5) > delta_fast:
-                        print("fast")
                         scale = speed_scale_factor_fast
                     else:
-                        print("slow")
                         scale = speed_scale_factor_slow
                     scale = scale * (abs(y_smoothed - .5) - delta_slow) / abs(y_smoothed - .5)
                     y_diff = ((y_smoothed - .5) ** 5) * scale
@@ -155,6 +162,7 @@ def main():
 
                 pyautogui.moveTo(mouse_x * screenWidth, 
                                  mouse_y * screenHeight)
+                
 
                 important = [37, 38, 40, 41, 43, 44, 46, 47]
                 ds = dict()
@@ -180,7 +188,18 @@ def main():
                 for start, end in line_pairs:
                     cv2.line(frame, reprojectdst[start], reprojectdst[end], color)
 
-            cv2.imshow("demo", frame)
+                if eyeClose and eye_close_timer is None:
+                    eye_close_timer = time.time()
+                elif not eyeClose and eye_close_timer is not None:
+                    time_closed = time.time() - eye_close_timer
+                    if time_closed > 5:
+                        text = speech_to_text.detect_sentence()
+                        pyautogui.typewrite(text)
+                    elif time_closed > 2:
+                        pyautogui.click()
+                    eye_close_timer = None
+
+            # cv2.imshow("demo", frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
